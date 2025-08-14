@@ -475,7 +475,11 @@ export default function PromptCraftApp() {
     <div className="min-h-screen bg-[#0a0c0f] text-white" style={{ fontFamily: "ui-sans-serif, system-ui" }}>
       <header className="flex items-center justify-between px-6 py-4 border-b border-[#13161b]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg" style={{ background: ACCENT }} />
+          <img
+          src={`${import.meta.env.BASE_URL}promptcraftfavicon.svg`}
+          alt="PromptCraft Logo"
+          className="w-8 h-8"
+          />
           <span className="font-semibold tracking-wide">PromptCraft</span>
         </div>
         <nav className="flex items-center gap-2 text-sm text-zinc-400">

@@ -1,5 +1,118 @@
 import React, { useMemo, useState } from "react";
 
+
+
+/** ===== Helpers & UI bits (added) ===== */
+export const NewBadge = () => (
+  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-300 ring-1 ring-amber-400/30">
+    <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-300" />
+    NEW
+  </span>
+);
+
+export const HelpTooltip = ({ text }) => (
+  <span className="ml-2 cursor-help text-xs text-zinc-400" title={text}>ⓘ</span>
+);
+
+export function LabeledSelect({ label, items, value, onChange, fresh = false, className = "" }) {
+  const hint = React.useMemo(() => items.find(x => String(x.value) == String(value))?.hint || "", [items, value]);
+  return (
+    <label className={`flex flex-col gap-1 ${className}`}>
+      <div className="flex items-center">
+        <span className="text-sm text-zinc-300">{label}</span>
+        {fresh && <NewBadge />}
+        {hint && <HelpTooltip text={hint} />}
+      </div>
+      <select
+        className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none hover:border-zinc-600 focus:border-zinc-400"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      >
+        {items.map(o => (
+          <option key={o.value} value={o.value} title={o.hint || ""}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+// Newness highlighter (optional)
+export function isFresh(key, days = 14) {
+  try {
+    const seen = localStorage.getItem(`seen_${key}`);
+    if (!seen) return true;
+    const age = (Date.now() - Number(seen)) / (1000 * 60 * 60 * 24);
+    return age >= days;
+  } catch { return true; }
+}
+export function markSeen(key) { try { localStorage.setItem(`seen_${key}`, String(Date.now())); } catch {} }
+
+export function NewHighlight({ children, featureKey, className = "" }) {
+  const fresh = isFresh(featureKey);
+  return (
+    <div
+      className={fresh ? `p-1 rounded-lg bg-amber-50/30 ring-1 ring-amber-200/40 ${className}` : className}
+      onFocusCapture={() => markSeen(featureKey)}
+      onMouseEnter={() => markSeen(featureKey)}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** ===== Camera vocab constants (added) ===== */
+// Use *_OPTS to avoid clashing with existing arrays
+export const APERTURE_OPTS = [
+  { value: "f/1.2", label: "f/1.2", hint: "ultra blurry background, dreamy bokeh" },
+  { value: "f/2.8", label: "f/2.8", hint: "shallow depth, subject pops" },
+  { value: "f/4",   label: "f/4",   hint: "balanced blur vs detail" },
+  { value: "f/8",   label: "f/8",   hint: "sharp scene, tabletop sweet spot" },
+  { value: "f/11",  label: "f/11",  hint: "deep focus" },
+];
+
+export const FOCAL_LENGTHS = [
+  { value: 24,  label: "24 mm (wide)",     hint: "dramatic perspective, more context" },
+  { value: 35,  label: "35 mm (street)",   hint: "natural wide" },
+  { value: 50,  label: "50 mm (normal)",   hint: "human-like view, classic" },
+  { value: 85,  label: "85 mm (portrait)", hint: "flattering, background melt" },
+  { value: 105, label: "105 mm (tele)",    hint: "compressed, tight product/beauty" },
+];
+
+export const CAMERA_ANGLE_OPTS = [
+  { value: "eye-level", label: "Eye-level",       hint: "neutral, honest" },
+  { value: "low-angle", label: "Low angle",       hint: "heroic, powerful" },
+  { value: "high-angle",label: "High angle",      hint: "delicate, overview" },
+  { value: "top-down",  label: "Top-down (flat)", hint: "graphic layout" },
+  { value: "Dutch tilt",label: "Dutch tilt",      hint: "stylized tension" },
+];
+
+export const ASPECT_RATIOS = [
+  { value: "1:1",  label: "1:1 (Square)",     hint: "balanced; grid friendly" },
+  { value: "4:5",  label: "4:5 (Portrait)",   hint: "IG feed tall" },
+  { value: "3:2",  label: "3:2 (Classic)",    hint: "photo native" },
+  { value: "16:9", label: "16:9 (Wide)",      hint: "cover/hero" },
+  { value: "9:16", label: "9:16 (Vertical)",  hint: "Stories/Reels" },
+];
+
+/** ===== Prompt helpers (added) ===== */
+export const labelFor = (opts, v) => (opts.find(o => String(o.value) == String(v))?.label || v);
+export function frag(list, value) {
+  const item = list.find(i => String(i.value) == String(value));
+  return item ? item.hint || item.label : "";
+}
+
+// Camera add-on builder
+export function buildCameraAddonLine({ aperture, focal, angle, ratio }) {
+  const line = [
+    focal    && `${labelFor(FOCAL_LENGTHS, focal)} lens`,
+    aperture && `${labelFor(APERTURE_OPTS, aperture)} aperture`,
+    angle    && `${labelFor(CAMERA_ANGLE_OPTS, angle)} angle`,
+    ratio    && `ratio ${labelFor(ASPECT_RATIOS, ratio)}`,
+  ].filter(Boolean).join(" · ");
+  return line ? `Camera: ${line}` : "";
+}
 const ACCENT = "#bfff2f";
 
 const SUBJECT_TYPES = [
@@ -391,9 +504,9 @@ function buildGenericPrompt(state, resolvedCam) {
     .join("\n");
 }
 
-function buildMidjourney(state, resolvedCam) {
+function buildMidjourney(state, resolvedCam, ratio) {
   const generic = buildGenericPrompt(state, resolvedCam).replaceAll("\n", " ").trim();
-  return `${generic} --ar 3:2 --stylize 300 --seed 1234`;
+  return `${generic} --ar ${ratio || "3:2"} --stylize 300 --seed 1234`;
 }
 
 function buildStableDiffusion(state, resolvedCam) {
@@ -410,6 +523,12 @@ function buildDALLE(state, resolvedCam) {
 export default function PromptCraftApp() {
   const [engine, setEngine] = useState("Generic");
   const [proMode, setProMode] = useState(false);
+
+  // Added camera enhancement states (separate from big state object)
+  const [apertureExtra, setApertureExtra] = useState("f/2.8");
+  const [focal, setFocal]                 = useState(85);
+  const [angleExtra, setAngleExtra]       = useState("eye-level");
+  const [ratio, setRatio]                 = useState("4:5");
 
   const [state, setState] = useState({
     subjectType: "human",
@@ -441,17 +560,21 @@ export default function PromptCraftApp() {
   );
 
   const prompt = useMemo(() => {
-    switch (engine) {
-      case "Midjourney":
-        return buildMidjourney(state, resolvedCam);
-      case "Stable Diffusion":
-        return buildStableDiffusion(state, resolvedCam);
-      case "DALL·E":
-        return buildDALLE(state, resolvedCam);
-      default:
-        return buildGenericPrompt(state, resolvedCam);
-    }
-  }, [engine, state, resolvedCam]);
+    const base = (() => {
+      switch (engine) {
+        case "Midjourney":
+          return buildMidjourney(state, resolvedCam, ratio);
+        case "Stable Diffusion":
+          return buildStableDiffusion(state, resolvedCam);
+        case "DALL·E":
+          return buildDALLE(state, resolvedCam);
+        default:
+          return buildGenericPrompt(state, resolvedCam);
+      }
+    })();
+    const camLine = buildCameraAddonLine({ aperture: apertureExtra || state.aperture, focal, angle: angleExtra || state.angle, ratio });
+    return camLine ? `${base} ${camLine}` : base;
+  }, [engine, state, resolvedCam, apertureExtra, angleExtra, focal, ratio]);
 
   const cameraStrip = `${state.lens || resolvedCam.lens} • ${state.aperture || resolvedCam.aperture} • ${resolvedCam.iso}`;
 
@@ -553,6 +676,39 @@ export default function PromptCraftApp() {
               <Pill>{resolvedCam.iso}</Pill>
             </div>
           </Section>
+          <Section title="Camera settings" help="Quick, human-friendly camera picks">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <LabeledSelect
+                label="Aperture"
+                items={APERTURE_OPTS}
+                value={apertureExtra}
+                onChange={setApertureExtra}
+                fresh
+              />
+              <LabeledSelect
+                label="Focal length"
+                items={FOCAL_LENGTHS}
+                value={focal}
+                onChange={(v) => setFocal(Number(v))}
+                fresh
+              />
+              <LabeledSelect
+                label="Angle"
+                items={CAMERA_ANGLE_OPTS}
+                value={angleExtra}
+                onChange={setAngleExtra}
+                fresh
+              />
+              <LabeledSelect
+                label="Aspect ratio"
+                items={ASPECT_RATIOS}
+                value={ratio}
+                onChange={setRatio}
+                fresh
+              />
+            </div>
+          </Section>
+
 
           <Section title="Scene & Lighting" help="Where it happens and how it’s lit">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -619,6 +775,15 @@ export default function PromptCraftApp() {
               value={prompt}
             />
           </Section>
+          <Section title="Camera glossary" help="Plain-language reminders">
+            <ul className="space-y-2 text-sm text-zinc-300">
+              {apertureExtra && <li><strong>Aperture:</strong> {labelFor(APERTURE_OPTS, apertureExtra)} — {frag(APERTURE_OPTS, apertureExtra)}</li>}
+              {focal         && <li><strong>Focal length:</strong> {labelFor(FOCAL_LENGTHS, focal)} — {frag(FOCAL_LENGTHS, focal)}</li>}
+              {angleExtra    && <li><strong>Angle:</strong> {labelFor(CAMERA_ANGLE_OPTS, angleExtra)} — {frag(CAMERA_ANGLE_OPTS, angleExtra)}</li>}
+              {ratio         && <li><strong>Aspect ratio:</strong> {labelFor(ASPECT_RATIOS, ratio)} — {frag(ASPECT_RATIOS, ratio)}</li>}
+            </ul>
+          </Section>
+
 
           <Section title="Tips" help="Small things that make outputs premium">
             <ul className="text-sm text-zinc-300 list-disc ml-5 space-y-2">

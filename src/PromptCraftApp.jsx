@@ -606,6 +606,7 @@ export default function PromptCraftApp({ hideHeader = true }) {
           />
           <span className="font-semibold tracking-wide">PromptCraft</span>
         </div>
+              )}
         <nav className="flex items-center gap-2 text-sm text-zinc-400">
           {ENGINES.map((e) => (
             <button
@@ -627,7 +628,6 @@ export default function PromptCraftApp({ hideHeader = true }) {
           </label>
         </nav>
       </header>
-      )}
 
       <section className="px-6 py-10 text-center">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">Craft stunning, cinematic prompts</h1>

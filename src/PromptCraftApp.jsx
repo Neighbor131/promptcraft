@@ -606,8 +606,8 @@ export default function PromptCraftApp({ hideHeader = true }) {
           />
           <span className="font-semibold tracking-wide">PromptCraft</span>
         </div>
-              )}
         <nav className="flex items-center gap-2 text-sm text-zinc-400">
+                        )}
           {ENGINES.map((e) => (
             <button
               key={e}

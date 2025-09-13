@@ -594,40 +594,57 @@ export default function PromptCraftApp({ hideHeader = true }) {
     });
   };
 
-  return (
-    <div className="min-h-screen bg-[#0a0c0f] text-white" style={{ fontFamily: "ui-sans-serif, system-ui" }}>
-      {!hideHeader && (
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[#13161b]">
-        <div className="flex items-center gap-3">
-          <img
-          src={`${import.meta.env.BASE_URL}promptcraftfavicon.svg`}
-          alt="PromptCraft Logo"
-          className="w-8 h-8"
+ return (
+  <div
+    className="min-h-screen bg-[#0a0c0f] text-white"
+    style={{ fontFamily: "ui-sans-serif, system-ui" }}
+  >
+    <header className="flex items-center justify-between px-6 py-4 border-b border-[#13161b]">
+      {/* Left: logo area (hidden when hideHeader = true) */}
+      <div className="flex items-center gap-3">
+        {!hideHeader ? (
+          <>
+            <img
+              src={`${import.meta.env.BASE_URL}promptcraftfavicon.svg`}
+              alt="PromptCraft Logo"
+              className="w-8 h-8"
+            />
+            <span className="font-semibold tracking-wide">PromptCraft</span>
+          </>
+        ) : (
+          // optional spacer to keep layout from jumping when logo is hidden
+          <span className="w-8 h-8 inline-block" />
+        )}
+      </div>
+
+      {/* Right: tabs + toggle (always visible) */}
+      <nav className="flex items-center gap-2 text-sm text-zinc-400">
+        {ENGINES.map((e) => (
+          <button
+            key={e}
+            className={cls(
+              "px-3 py-1 rounded-lg border",
+              engine === e
+                ? "border-transparent text-black"
+                : "border-[#2a2a2a] hover:border-zinc-600"
+            )}
+            style={engine === e ? { background: ACCENT } : {}}
+            onClick={() => setEngine(e)}
+          >
+            {e}
+          </button>
+        ))}
+        <div className="w-px h-6 bg-[#1f1f1f] mx-2" />
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={proMode}
+            onChange={(e) => setProMode(e.target.checked)}
           />
-          <span className="font-semibold tracking-wide">PromptCraft</span>
-        </div>
-        <nav className="flex items-center gap-2 text-sm text-zinc-400">
-                        )}
-          {ENGINES.map((e) => (
-            <button
-              key={e}
-              className={cls(
-                "px-3 py-1 rounded-lg border",
-                engine === e ? "border-transparent text-black" : "border-[#2a2a2a] hover:border-zinc-600"
-              )}
-              style={engine === e ? { background: ACCENT } : {}}
-              onClick={() => setEngine(e)}
-            >
-              {e}
-            </button>
-          ))}
-          <div className="w-px h-6 bg-[#1f1f1f] mx-2" />
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" checked={proMode} onChange={(e) => setProMode(e.target.checked)} />
-            <span className="text-zinc-300">Pro camera controls</span>
-          </label>
-        </nav>
-      </header>
+          <span className="text-zinc-300">Pro camera controls</span>
+        </label>
+      </nav>
+    </header>
 
       <section className="px-6 py-10 text-center">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">Craft stunning, cinematic prompts</h1>

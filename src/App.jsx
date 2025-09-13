@@ -1,12 +1,16 @@
 // src/App.jsx
-import { Routes, Route, NavLink } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation } from "react-router-dom";
 import PromptCraftApp from "./PromptCraftApp.jsx";
 import PromptBuilder from "./components/PromptBuilder.jsx";
+import MagazineModel from "./components/MagazineModel.jsx"; // NEW
 
 export default function App() {
+  const { pathname } = useLocation();
+  const onMain = pathname === "/";
+
   return (
     <div className="min-h-screen bg-[#0B0C0F] text-white">
-      {/* Header */}
+      {/* Global Header */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0B0C0F]/80 backdrop-blur">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
@@ -22,13 +26,14 @@ export default function App() {
               to="/"
               end
               className={({ isActive }) =>
-                `rounded-md px-3 py-1.5 text-sm ${isActive ? "bg-white/10" : "hover:bg-white/5"}`
+                `rounded-md px-3 py-1.5 text-sm ${
+                  isActive ? "bg-white/10" : "hover:bg-white/5"
+                }`
               }
             >
               Builder (Main)
             </NavLink>
 
-            {/* NEW: Model Builder page */}
             <NavLink
               to="/model"
               className={({ isActive }) =>
@@ -40,17 +45,18 @@ export default function App() {
             >
               Model Builder
             </NavLink>
-            <NavLink
-  to="/magazine"
-  className={({ isActive }) =>
-    `rounded-md px-3 py-1.5 text-sm ${
-      isActive ? "bg-lime-400 text-black" : "bg-white/10 hover:bg-white/20"
-    }`
-  }
->
-  Magazine Model
-</NavLink>
 
+            <NavLink
+              to="/magazine"
+              className={({ isActive }) =>
+                `rounded-md px-3 py-1.5 text-sm ${
+                  isActive ? "bg-lime-400 text-black" : "bg-white/10 hover:bg-white/20"
+                }`
+              }
+              title="Magazine Model (editorial beauty)"
+            >
+              Magazine Model
+            </NavLink>
           </nav>
         </div>
       </header>
@@ -58,11 +64,10 @@ export default function App() {
       {/* Routes */}
       <main className="mx-auto max-w-6xl px-4 py-6">
         <Routes>
-          <Route path="/" element={<PromptCraftApp />} />
-          <Route path="/model" element={<PromptBuilder />} />
+          {/* hide the legacy internal header on the main page */}
           <Route path="/" element={<PromptCraftApp hideHeader />} />
-  <Route path="/model" element={<PromptBuilder />} />
-            <Route path="/magazine" element={<MagazineModel />} /> {/* NEW */}
+          <Route path="/model" element={<PromptBuilder />} />
+          <Route path="/magazine" element={<MagazineModel />} />
         </Routes>
       </main>
     </div>

@@ -129,7 +129,7 @@ function Chip({ active, onClick, children }) {
       type="button"
       onClick={onClick}
       className={
-        "rounded-full border text-xs px-3 py-1 mr-2 mb-2 " +
+        "rounded-full border text-xs px-3 py-1 mr-2 mb-2 transition-colors " +
         (active
           ? "border-lime-400 bg-lime-400 text-black"
           : "border-[#13161b] bg-white/5 text-white hover:bg-white/10")
@@ -276,59 +276,201 @@ export default function PromptBuilder() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
-      <header className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          E-commerce Model Prompt Builder
-        </h1>
-        <p className="text-sm text-white/60">
-          Assemble consistent, studio-grade prompts for makeup, jewelry, and apparel PDP assets.
-          Use “Custom…” in any dropdown, then add Enhancers for micro-texture, lens feel, and subtle grading.
-        </p>
-      </header>
+    <div className="min-h-screen bg-[#0a0c0f] text-white">
+      <div className="mx-auto max-w-6xl p-6">
+        <header className="mb-6">
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            E-commerce Model Prompt Builder
+          </h1>
+          <p className="text-sm text-white/60">
+            Assemble consistent, studio-grade prompts for makeup, jewelry, and apparel PDP assets.
+            Use "Custom…" in any dropdown, then add Enhancers for micro-texture, lens feel, and subtle grading.
+          </p>
+        </header>
 
-      <section className="grid gap-6 md:grid-cols-2">
-        {/* Left: form */}
-        <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-4 shadow-sm">
-          <div className="grid grid-cols-1 gap-3">
-            {/* ... your SelectOrCustom fields and Enhancers block ... */}
-          </div>
-        </div>
+        <section className="grid gap-6 lg:grid-cols-2">
+          {/* Left: form */}
+          <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-6 shadow-sm">
+            <div className="space-y-4">
+              <SelectOrCustom
+                label="Subject"
+                value={state.subject}
+                onChange={(v) => setState(s => ({ ...s, subject: v }))}
+                options={OPTIONS.subject}
+                id="subject"
+              />
 
-        {/* Right: preview */}
-        <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold">Live preview</h2>
-            <div className="flex flex-wrap gap-2">
-              {PRESETS.map((p) => (
+              <SelectOrCustom
+                label="Skin Tone"
+                value={state.skin}
+                onChange={(v) => setState(s => ({ ...s, skin: v }))}
+                options={OPTIONS.skin}
+                id="skin"
+              />
+
+              <SelectOrCustom
+                label="Face Shape"
+                value={state.faceShape}
+                onChange={(v) => setState(s => ({ ...s, faceShape: v }))}
+                options={OPTIONS.faceShape}
+                id="faceShape"
+              />
+
+              <SelectOrCustom
+                label="Framing"
+                value={state.framing}
+                onChange={(v) => setState(s => ({ ...s, framing: v }))}
+                options={OPTIONS.framing}
+                id="framing"
+              />
+
+              <SelectOrCustom
+                label="Background"
+                value={state.background}
+                onChange={(v) => setState(s => ({ ...s, background: v }))}
+                options={OPTIONS.background}
+                id="background"
+              />
+
+              <SelectOrCustom
+                label="Lighting"
+                value={state.lighting}
+                onChange={(v) => setState(s => ({ ...s, lighting: v }))}
+                options={OPTIONS.lighting}
+                id="lighting"
+              />
+
+              <SelectOrCustom
+                label="Camera & Lens"
+                value={state.camera}
+                onChange={(v) => setState(s => ({ ...s, camera: v }))}
+                options={OPTIONS.camera}
+                id="camera"
+              />
+
+              <SelectOrCustom
+                label="Depth of Field"
+                value={state.dof}
+                onChange={(v) => setState(s => ({ ...s, dof: v }))}
+                options={OPTIONS.dof}
+                id="dof"
+              />
+
+              <SelectOrCustom
+                label="Focus Area"
+                value={state.focusArea}
+                onChange={(v) => setState(s => ({ ...s, focusArea: v }))}
+                options={OPTIONS.focusArea}
+                id="focusArea"
+              />
+
+              <SelectOrCustom
+                label="Mood"
+                value={state.mood}
+                onChange={(v) => setState(s => ({ ...s, mood: v }))}
+                options={OPTIONS.mood}
+                id="mood"
+              />
+
+              <SelectOrCustom
+                label="Quality"
+                value={state.quality}
+                onChange={(v) => setState(s => ({ ...s, quality: v }))}
+                options={OPTIONS.quality}
+                id="quality"
+              />
+
+              <SelectOrCustom
+                label="Orientation"
+                value={state.orientation}
+                onChange={(v) => setState(s => ({ ...s, orientation: v }))}
+                options={OPTIONS.orientation}
+                id="orientation"
+              />
+
+              <Field label="Additional Notes (optional)">
+                <textarea
+                  className="w-full rounded-lg border border-[#13161b] bg-[#111316] text-white placeholder-white/40 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-400/40 resize-none"
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add specific details like clothing, accessories, expression..."
+                />
+              </Field>
+
+              {/* Enhancers */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-white/80">Pro Enhancers</h3>
+                {Object.entries(ENHANCERS).map(([category, items]) => (
+                  <div key={category}>
+                    <h4 className="text-xs text-white/60 mb-2">{category}</h4>
+                    <div className="flex flex-wrap">
+                      {items.map((item) => (
+                        <Chip
+                          key={item}
+                          active={enhancers.has(item)}
+                          onClick={() => toggleEnhancer(item)}
+                        >
+                          {item}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2 pt-2">
                 <button
-                  key={p.name}
-                  onClick={() => applyPreset(p)}
-                  className="rounded-full border border-[#13161b] bg-white/5 px-3 py-1 text-xs font-medium text-white hover:bg-white/10"
-                  title={`Apply preset: ${p.name}`}
+                  onClick={reset}
+                  className="rounded-lg border border-[#13161b] bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
                 >
-                  {p.name}
+                  Reset All
                 </button>
-              ))}
+              </div>
             </div>
           </div>
 
-          <pre className="whitespace-pre-wrap rounded-xl border border-[#13161b] bg-[#0b0e12] p-4 text-sm leading-6 text-white/90">
-            {assembled}
-          </pre>
+          {/* Right: preview */}
+          <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-base font-semibold">Live Preview</h2>
+              <div className="flex flex-wrap gap-2">
+                {PRESETS.map((p) => (
+                  <button
+                    key={p.name}
+                    onClick={() => applyPreset(p)}
+                    className="rounded-full border border-[#13161b] bg-white/5 px-3 py-1 text-xs font-medium text-white hover:bg-white/10"
+                    title={`Apply preset: ${p.name}`}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          <p className="mt-3 text-xs text-white/60">
-            Tip: toggle Enhancers to add micro-texture, lens feel, subtle grading, and realistic imperfections.
-          </p>
-        </div>
-      </section>
+            <pre className="whitespace-pre-wrap rounded-xl border border-[#13161b] bg-[#0b0e12] p-4 text-sm leading-6 text-white/90 max-h-96 overflow-y-auto">
+              {assembled}
+            </pre>
 
-      <footer className="mt-6 text-center text-xs text-white/50">
-        Single-file component. Extend options or add new dropdowns (pose, ethnicity, makeup style) as needed.
-      </footer>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={copy}
+                className="rounded-lg bg-lime-400 px-4 py-2 text-sm font-medium text-black hover:bg-lime-500 transition-colors"
+              >
+                Copy Prompt
+              </button>
+            </div>
+
+            <p className="mt-3 text-xs text-white/60">
+              Tip: Toggle Enhancers to add micro-texture, lens feel, subtle grading, and realistic imperfections.
+            </p>
+          </div>
+        </section>
+
+        <footer className="mt-8 text-center text-xs text-white/50">
+          Single-file component. Extend options or add new dropdowns (pose, ethnicity, makeup style) as needed.
+        </footer>
+      </div>
     </div>
   );
-} // ← closes the component
-
-// Nothing below this line.
-ers]);
+}

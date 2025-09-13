@@ -222,9 +222,30 @@ export default function PromptBuilder() {
       return next;
     });
 
-  const assembled = useMemo(() => {
-    const s = Object.fromEntries(Object.entries(state).map(([k, v]) => [k, stripCustom(v)]));
-    const parts = [];
-    parts.push(`${s.quality} ${s.orientation} editorial portrait of a ${s.subject} with ${s.skin} and a ${s.faceShape} face, framed ${s.framing}, against a ${s.background}.`);
-    parts.push(`Lighting is ${s.lighting}, captured at ${s.camera} with ${s.dof}.`);
-    parts.push(`
+const assembled = useMemo(() => {
+  const s = Object.fromEntries(
+    Object.entries(state).map(([k, v]) => [k, stripCustom(v)])
+  );
+
+  const parts = [];
+  parts.push(
+    `${s.quality} ${s.orientation} editorial portrait of a ${s.subject} with ${s.skin} and a ${s.faceShape} face, framed ${s.framing}, against a ${s.background}.`
+  );
+  parts.push(
+    `Lighting is ${s.lighting}, captured at ${s.camera} with ${s.dof}.`
+  );
+  parts.push(
+    `Emphasize ${s.focusArea}. The mood is ${s.mood}.`
+  );
+
+  if (notes.trim()) {
+    parts.push(`Details: ${notes.trim()}`);
+  }
+
+  const extra = Array.from(enhancers);
+  if (extra.length) {
+    parts.push(`Additional cues: ${extra.join(", ")}.`);
+  }
+
+  return parts.join(" ");
+}, [state, notes, enhancers]);

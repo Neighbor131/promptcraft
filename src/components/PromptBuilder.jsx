@@ -222,30 +222,113 @@ export default function PromptBuilder() {
       return next;
     });
 
-const assembled = useMemo(() => {
-  const s = Object.fromEntries(
-    Object.entries(state).map(([k, v]) => [k, stripCustom(v)])
-  );
+  const assembled = useMemo(() => {
+    const s = Object.fromEntries(
+      Object.entries(state).map(([k, v]) => [k, stripCustom(v)])
+    );
 
-  const parts = [];
-  parts.push(
-    `${s.quality} ${s.orientation} editorial portrait of a ${s.subject} with ${s.skin} and a ${s.faceShape} face, framed ${s.framing}, against a ${s.background}.`
-  );
-  parts.push(
-    `Lighting is ${s.lighting}, captured at ${s.camera} with ${s.dof}.`
-  );
-  parts.push(
-    `Emphasize ${s.focusArea}. The mood is ${s.mood}.`
-  );
+    const parts = [];
+    parts.push(
+      `${s.quality} ${s.orientation} editorial portrait of a ${s.subject} ` +
+      `with ${s.skin} and a ${s.faceShape} face, framed ${s.framing}, against a ${s.background}.`
+    );
+    parts.push(
+      `Lighting is ${s.lighting}, captured at ${s.camera} with ${s.dof}.`
+    );
+    parts.push(`Emphasize ${s.focusArea}. The mood is ${s.mood}.`);
 
-  if (notes.trim()) {
-    parts.push(`Details: ${notes.trim()}`);
-  }
+    if (notes.trim()) parts.push(`Details: ${notes.trim()}`);
 
-  const extra = Array.from(enhancers);
-  if (extra.length) {
-    parts.push(`Additional cues: ${extra.join(", ")}.`);
-  }
+    const extra = Array.from(enhancers);
+    if (extra.length) parts.push(`Additional cues: ${extra.join(", ")}.`);
 
-  return parts.join(" ");
-}, [state, notes, enhancers]);
+    return parts.join(" ");
+  }, [state, notes, enhancers]);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(assembled);
+      alert("Prompt copied to clipboard");
+    } catch {
+      alert("Copy failed — your browser may block clipboard access.");
+    }
+  };
+
+  const applyPreset = (preset) => setState((s) => ({ ...s, ...preset.values }));
+
+  const reset = () => {
+    setState({
+      subject: OPTIONS.subject[0],
+      skin: OPTIONS.skin[0],
+      faceShape: OPTIONS.faceShape[0],
+      framing: OPTIONS.framing[0],
+      background: OPTIONS.background[0],
+      lighting: OPTIONS.lighting[0],
+      camera: OPTIONS.camera[0],
+      dof: OPTIONS.dof[0],
+      focusArea: OPTIONS.focusArea[0],
+      mood: OPTIONS.mood[0],
+      quality: OPTIONS.quality[0],
+      orientation: OPTIONS.orientation[0],
+    });
+    setNotes("");
+    setEnhancers(new Set());
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl p-6">
+      <header className="mb-6">
+        <h1 className="text-3xl font-extrabold tracking-tight">
+          E-commerce Model Prompt Builder
+        </h1>
+        <p className="text-sm text-white/60">
+          Assemble consistent, studio-grade prompts for makeup, jewelry, and apparel PDP assets.
+          Use “Custom…” in any dropdown, then add Enhancers for micro-texture, lens feel, and subtle grading.
+        </p>
+      </header>
+
+      <section className="grid gap-6 md:grid-cols-2">
+        {/* Left: form */}
+        <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-4 shadow-sm">
+          <div className="grid grid-cols-1 gap-3">
+            {/* ... your SelectOrCustom fields and Enhancers block ... */}
+          </div>
+        </div>
+
+        {/* Right: preview */}
+        <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-semibold">Live preview</h2>
+            <div className="flex flex-wrap gap-2">
+              {PRESETS.map((p) => (
+                <button
+                  key={p.name}
+                  onClick={() => applyPreset(p)}
+                  className="rounded-full border border-[#13161b] bg-white/5 px-3 py-1 text-xs font-medium text-white hover:bg-white/10"
+                  title={`Apply preset: ${p.name}`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <pre className="whitespace-pre-wrap rounded-xl border border-[#13161b] bg-[#0b0e12] p-4 text-sm leading-6 text-white/90">
+            {assembled}
+          </pre>
+
+          <p className="mt-3 text-xs text-white/60">
+            Tip: toggle Enhancers to add micro-texture, lens feel, subtle grading, and realistic imperfections.
+          </p>
+        </div>
+      </section>
+
+      <footer className="mt-6 text-center text-xs text-white/50">
+        Single-file component. Extend options or add new dropdowns (pose, ethnicity, makeup style) as needed.
+      </footer>
+    </div>
+  );
+} // ← closes the component
+
+// Nothing below this line.
+ers]);

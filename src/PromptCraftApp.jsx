@@ -520,7 +520,7 @@ function buildDALLE(state, resolvedCam) {
   return `Create a high-end cinematic image. ${lines.join(" ")}`;
 }
 
-export default function PromptCraftApp() {
+export default function PromptCraftApp({ hideHeader = true }) {
   const [engine, setEngine] = useState("Generic");
   const [proMode, setProMode] = useState(false);
 
@@ -596,6 +596,7 @@ export default function PromptCraftApp() {
 
   return (
     <div className="min-h-screen bg-[#0a0c0f] text-white" style={{ fontFamily: "ui-sans-serif, system-ui" }}>
+      {!hideHeader && (
       <header className="flex items-center justify-between px-6 py-4 border-b border-[#13161b]">
         <div className="flex items-center gap-3">
           <img
@@ -626,6 +627,7 @@ export default function PromptCraftApp() {
           </label>
         </nav>
       </header>
+      )}
 
       <section className="px-6 py-10 text-center">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">Craft stunning, cinematic prompts</h1>

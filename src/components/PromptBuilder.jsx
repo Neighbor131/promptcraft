@@ -70,12 +70,50 @@ const PRESETS = [
   },
 ];
 
-/* --- Custom option handling --- */
-const CUSTOM_PREFIX = "__custom__:";
-const isCustom = (v) => typeof v === "string" && v.startsWith(CUSTOM_PREFIX);
-const stripCustom = (v) => (isCustom(v) ? v.slice(CUSTOM_PREFIX.length) : v);
+/* --- Pro Enhancers (curated) --- */
+const ENHANCERS = {
+  Texture: [
+    "fine skin pores visible",
+    "tiny vellus hairs along jawline",
+    "subtle peach fuzz highlights",
+    "natural freckles visible",
+    "glossy lip micro-creases",
+    "hair flyaways catching light",
+  ],
+  Lighting: [
+    "soft wrap around light",
+    "gentle specular highlights on cheekbones",
+    "shadowless beauty dish feel",
+    "feathered rim light",
+  ],
+  Realism: [
+    "very fine film grain in shadow regions",
+    "slight chromatic aberration on high-contrast edges",
+    "portrait-lens compression (85mm look)",
+  ],
+  ColorGrading: [
+    "neutral color balance",
+    "soft warm skin bias",
+    "cool background bias",
+    "pastel tonality",
+  ],
+  Background: [
+    "seamless gradient vignette at top",
+    "very light paper texture",
+    "soft falloff to light gray at upper edge",
+  ],
+  Composition: [
+    "eyes line a third from top",
+    "slight low-angle POV (~5°)",
+    "tight crop from collarbones up",
+  ],
+  Retouch: [
+    "clean beauty retouch while preserving pores",
+    "no plastic skin smoothing",
+  ],
+};
 
-/* --- UI primitives styled for your dark theme --- */
+/* --- UI primitives (dark theme) --- */
 function Field({ label, children }) {
   return (
     <label className="block text-sm mb-3">
@@ -84,6 +122,27 @@ function Field({ label, children }) {
     </label>
   );
 }
+
+function Chip({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        "rounded-full border text-xs px-3 py-1 mr-2 mb-2 " +
+        (active
+          ? "border-lime-400 bg-lime-400 text-black"
+          : "border-[#13161b] bg-white/5 text-white hover:bg-white/10")
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
+const CUSTOM_PREFIX = "__custom__:";
+const isCustom = (v) => typeof v === "string" && v.startsWith(CUSTOM_PREFIX);
+const stripCustom = (v) => (isCustom(v) ? v.slice(CUSTOM_PREFIX.length) : v);
 
 function SelectOrCustom({ label, value, onChange, options, id, placeholder }) {
   const showCustom = isCustom(value);
@@ -154,126 +213,18 @@ export default function PromptBuilder() {
     orientation: OPTIONS.orientation[0],
   });
   const [notes, setNotes] = useState("");
+  const [enhancers, setEnhancers] = useState(() => new Set());
+
+  const toggleEnhancer = (value) =>
+    setEnhancers((prev) => {
+      const next = new Set(prev);
+      next.has(value) ? next.delete(value) : next.add(value);
+      return next;
+    });
 
   const assembled = useMemo(() => {
     const s = Object.fromEntries(Object.entries(state).map(([k, v]) => [k, stripCustom(v)]));
     const parts = [];
     parts.push(`${s.quality} ${s.orientation} editorial portrait of a ${s.subject} with ${s.skin} and a ${s.faceShape} face, framed ${s.framing}, against a ${s.background}.`);
     parts.push(`Lighting is ${s.lighting}, captured at ${s.camera} with ${s.dof}.`);
-    parts.push(`Emphasize ${s.focusArea}. The mood is ${s.mood}.`);
-    if (notes.trim()) parts.push(`Details: ${notes.trim()}`);
-    return parts.join(" ");
-  }, [state, notes]);
-
-  const copy = async () => {
-    try { await navigator.clipboard.writeText(assembled); alert("Prompt copied to clipboard"); }
-    catch { alert("Copy failed — your browser may block clipboard access."); }
-  };
-
-  const applyPreset = (preset) => setState((s) => ({ ...s, ...preset.values }));
-  const reset = () => {
-    setState({
-      subject: OPTIONS.subject[0], skin: OPTIONS.skin[0], faceShape: OPTIONS.faceShape[0],
-      framing: OPTIONS.framing[0], background: OPTIONS.background[0], lighting: OPTIONS.lighting[0],
-      camera: OPTIONS.camera[0], dof: OPTIONS.dof[0], focusArea: OPTIONS.focusArea[0],
-      mood: OPTIONS.mood[0], quality: OPTIONS.quality[0], orientation: OPTIONS.orientation[0],
-    });
-    setNotes("");
-  };
-
-  return (
-    <div className="mx-auto max-w-6xl p-6">
-      <header className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-tight">E-commerce Model Prompt Builder</h1>
-        <p className="text-sm text-white/60">
-          Assemble consistent, studio-grade prompts for makeup, jewelry, and apparel PDP assets.
-          Use “Custom…” in any dropdown to type your own.
-        </p>
-      </header>
-
-      <section className="grid gap-6 md:grid-cols-2">
-        {/* Left: form */}
-        <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-4 shadow-sm">
-          <div className="grid grid-cols-1 gap-3">
-            <SelectOrCustom label="Subject" value={state.subject} onChange={(v) => setState((s) => ({ ...s, subject: v }))} options={OPTIONS.subject} id="subject" placeholder="e.g., androgynous model with freckles" />
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectOrCustom label="Skin" value={state.skin} onChange={(v) => setState((s) => ({ ...s, skin: v }))} options={OPTIONS.skin} id="skin" placeholder="e.g., deep ebony skin tone" />
-              <SelectOrCustom label="Face shape" value={state.faceShape} onChange={(v) => setState((s) => ({ ...s, faceShape: v }))} options={OPTIONS.faceShape} id="faceshape" placeholder="e.g., diamond-shaped" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectOrCustom label="Framing" value={state.framing} onChange={(v) => setState((s) => ({ ...s, framing: v }))} options={OPTIONS.framing} id="framing" placeholder="e.g., extreme close-up on lips" />
-              <SelectOrCustom label="Background" value={state.background} onChange={(v) => setState((s) => ({ ...s, background: v }))} options={OPTIONS.background} id="background" placeholder="e.g., warm taupe seamless" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectOrCustom label="Lighting" value={state.lighting} onChange={(v) => setState((s) => ({ ...s, lighting: v }))} options={OPTIONS.lighting} id="lighting" placeholder="e.g., ring light with soft diffusion" />
-              <SelectOrCustom label="Camera / Angle" value={state.camera} onChange={(v) => setState((s) => ({ ...s, camera: v }))} options={OPTIONS.camera} id="camera" placeholder="e.g., eye-level with 100mm macro" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectOrCustom label="Depth of field" value={state.dof} onChange={(v) => setState((s) => ({ ...s, dof: v }))} options={OPTIONS.dof} id="dof" placeholder="e.g., ultra shallow DOF, background fully creamy" />
-              <SelectOrCustom label="Focus area" value={state.focusArea} onChange={(v) => setState((s) => ({ ...s, focusArea: v }))} options={OPTIONS.focusArea} id="focus" placeholder="e.g., left ear with hoop earring" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectOrCustom label="Mood" value={state.mood} onChange={(v) => setState((s) => ({ ...s, mood: v }))} options={OPTIONS.mood} id="mood" placeholder="e.g., soft, natural, editorial" />
-              <SelectOrCustom label="Quality" value={state.quality} onChange={(v) => setState((s) => ({ ...s, quality: v }))} options={OPTIONS.quality} id="quality" placeholder="e.g., ultra clean beauty retouch" />
-            </div>
-
-            <SelectOrCustom label="Orientation / Aspect" value={state.orientation} onChange={(v) => setState((s) => ({ ...s, orientation: v }))} options={OPTIONS.orientation} id="orientation" placeholder="e.g., 3:4 portrait" />
-
-            <Field label="Extra details (optional)">
-              <textarea
-                className="w-full resize-y rounded-lg border border-[#13161b] bg-[#111316] text-white placeholder-white/40 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-400/40"
-                rows={3}
-                placeholder="e.g., natural freckles, subtle flyaways, glossy lipstick highlights"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </Field>
-
-            <div className="mt-2 flex gap-2">
-              <button onClick={copy} className="rounded-lg bg-lime-400 text-black px-4 py-2 text-sm font-medium shadow-sm hover:bg-lime-300 active:scale-[.99]">
-                Copy prompt
-              </button>
-              <button onClick={reset} className="rounded-lg border border-[#13161b] bg-white/5 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white/10 active:scale-[.99]">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: preview */}
-        <div className="rounded-2xl border border-[#13161b] bg-[#0f1115] p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold">Live preview</h2>
-            <div className="flex flex-wrap gap-2">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  onClick={() => applyPreset(p)}
-                  className="rounded-full border border-[#13161b] bg-white/5 px-3 py-1 text-xs font-medium text-white hover:bg-white/10"
-                  title={`Apply preset: ${p.name}`}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <pre className="whitespace-pre-wrap rounded-xl border border-[#13161b] bg-[#0b0e12] p-4 text-sm leading-6 text-white/90">
-            {assembled}
-          </pre>
-          <p className="mt-3 text-xs text-white/60">
-            Tip: use “Custom…” to type anything not in the list (e.g., "deep ebony skin tone", "eye-level with 100mm macro").
-          </p>
-        </div>
-      </section>
-
-      <footer className="mt-6 text-center text-xs text-white/50">
-        Single-file component. Extend options or add new dropdowns (pose, ethnicity, makeup style) as needed.
-      </footer>
-    </div>
-  );
-}
+    parts.push(`

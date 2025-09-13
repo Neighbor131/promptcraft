@@ -49,6 +49,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<PromptCraftApp />} />
           <Route path="/model" element={<PromptBuilder />} />
+          <Route path="/" element={<PromptCraftApp hideHeader />} />
+  <Route path="/model" element={<PromptBuilder />} />
         </Routes>
       </main>
     </div>

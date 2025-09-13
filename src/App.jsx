@@ -40,6 +40,17 @@ export default function App() {
             >
               Model Builder
             </NavLink>
+            <NavLink
+  to="/magazine"
+  className={({ isActive }) =>
+    `rounded-md px-3 py-1.5 text-sm ${
+      isActive ? "bg-lime-400 text-black" : "bg-white/10 hover:bg-white/20"
+    }`
+  }
+>
+  Magazine Model
+</NavLink>
+
           </nav>
         </div>
       </header>
